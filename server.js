@@ -1,3 +1,5 @@
+'use strict';
+
 const bodyParser = require('body-parser');
 const express = require('express');
 const mongoose = require('mongoose');
@@ -14,6 +16,25 @@ const {Restaurant} = require('./models');
 const app = express();
 app.use(bodyParser.json());
 
+
+app.get('/restaurants', (req, res) => {
+  const filters = {};
+  const queryableFields = ['cuisine', 'borough'];
+  queryableFields.forEach(field => {
+    if (req.query[field]) {
+      filters[field] = req.query[field];
+    }
+  });
+  Restaurant
+    .find(filters)
+    .then(Restaurants => res.json(
+      Restaurants.map(restaurant => restaurant.apiRepr())
+    ))
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({message: 'Internal server error'});
+    });
+});
 
 // GET requests to /restaurants => return 10 restaurants
 app.get('/restaurants', (req, res) => {
@@ -35,7 +56,7 @@ app.get('/restaurants', (req, res) => {
       err => {
         console.error(err);
         res.status(500).json({message: 'Internal server error'});
-    });
+      });
 });
 
 // can also request by ID
@@ -47,10 +68,28 @@ app.get('/restaurants/:id', (req, res) => {
     .then(restaurant =>res.json(restaurant.apiRepr()))
     .catch(err => {
       console.error(err);
-        res.status(500).json({message: 'Internal server error'})
+      res.status(500).json({message: 'Internal server error'});
     });
 });
 
+app.get('/restaurants', (req, res) => {
+  const filters = {};
+  const queryableFields = ['cuisine', 'borough'];
+  queryableFields.forEach(field => {
+    if (req.query[field]) {
+      filters[field] = req.query[field];
+    }
+  });
+  Restaurant
+    .find(filters)
+    .then(Restaurants => res.json(
+      Restaurants.map(restaurant => restaurant.apiRepr())
+    ))
+    .catch(err => {
+      console.error(err);
+      res.status(500).json({message: 'Internal server error'});
+    });
+});
 
 app.post('/restaurants', (req, res) => {
 
@@ -58,7 +97,7 @@ app.post('/restaurants', (req, res) => {
   for (let i=0; i<requiredFields.length; i++) {
     const field = requiredFields[i];
     if (!(field in req.body)) {
-      const message = `Missing \`${field}\` in request body`
+      const message = `Missing \`${field}\` in request body`;
       console.error(message);
       return res.status(400).send(message);
     }
@@ -138,10 +177,10 @@ function runServer(databaseUrl=DATABASE_URL, port=PORT) {
         console.log(`Your app is listening on port ${port}`);
         resolve();
       })
-      .on('error', err => {
-        mongoose.disconnect();
-        reject(err);
-      });
+        .on('error', err => {
+          mongoose.disconnect();
+          reject(err);
+        });
     });
   });
 }
@@ -150,15 +189,15 @@ function runServer(databaseUrl=DATABASE_URL, port=PORT) {
 // use it in our integration tests later.
 function closeServer() {
   return mongoose.disconnect().then(() => {
-     return new Promise((resolve, reject) => {
-       console.log('Closing server');
-       server.close(err => {
-           if (err) {
-               return reject(err);
-           }
-           resolve();
-       });
-     });
+    return new Promise((resolve, reject) => {
+      console.log('Closing server');
+      server.close(err => {
+        if (err) {
+          return reject(err);
+        }
+        resolve();
+      });
+    });
   });
 }
 
@@ -166,6 +205,6 @@ function closeServer() {
 // runs. but we also export the runServer command so other code (for instance, test code) can start the server as needed.
 if (require.main === module) {
   runServer().catch(err => console.error(err));
-};
+}
 
 module.exports = {app, runServer, closeServer};

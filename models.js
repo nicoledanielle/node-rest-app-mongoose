@@ -1,3 +1,5 @@
+'use strict';
+
 const mongoose = require('mongoose');
 
 // this is our schema to represent a restaurant
@@ -26,11 +28,11 @@ const restaurantSchema = mongoose.Schema({
 // to generate a human readable string based on the address object
 // we're storing in Mongo.
 restaurantSchema.virtual('addressString').get(function() {
-  return `${this.address.building} ${this.address.street}`.trim()});
+  return `${this.address.building} ${this.address.street}`.trim();});
 
 // this virtual grabs the most recent grade for a restaurant.
 restaurantSchema.virtual('grade').get(function() {
-  const gradeObj = this.grades.sort((a, b) => {return b.date - a.date})[0] || {};
+  const gradeObj = this.grades.sort((a, b) => {return b.date - a.date;})[0] || {};
   return gradeObj.grade;
 });
 
@@ -47,7 +49,7 @@ restaurantSchema.methods.apiRepr = function() {
     grade: this.grade,
     address: this.addressString
   };
-}
+};
 
 // note that all instance methods and virtual properties on our
 // schema must be defined *before* we make the call to `.model`.
